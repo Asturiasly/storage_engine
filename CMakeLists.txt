@@ -33,7 +33,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 IF (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type")
+    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type" FORCE)
 ELSEIF (NOT CMAKE_BUILD_TYPE STREQUAL "Release" AND
         NOT CMAKE_BUILD_TYPE STREQUAL "Debug" AND
         NOT CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
@@ -44,8 +44,7 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 set(SANITIZER_TYPE "off" CACHE STRING "Используются ли санитайзеры")
 
-#Общие флаги компиляции на все виды
-
+#Common flags for all types
 set(COMMON_COMPILE_OPTIONS 
     -Wall
     -Wextra
@@ -53,7 +52,7 @@ set(COMMON_COMPILE_OPTIONS
     -Werror
     -pedantic-errors)
 
-#Общие флаги линковки на все виды
+#Common linker flags
 set(COMMON_LINK_OPTIONS)
 
 IF (SANITIZER_TYPE STREQUAL "ADDRESS_UB_SANITIZE")
@@ -61,6 +60,8 @@ IF (SANITIZER_TYPE STREQUAL "ADDRESS_UB_SANITIZE")
     -fsanitize=address
     -fsanitize=undefined
     -fno-sanitize-recover=all)
+    #Without ASAN macros do nothing
+    add_compile_definitions(_GLIBCXX_SANITIZE_VECTOR)
 ELSEIF (SANITIZER_TYPE STREQUAL "UB_THREAD_SANITIZE")
     set(SANITIZER_FLAGS
     -fsanitize=thread
@@ -74,29 +75,32 @@ ENDIF()
 
 FetchContent_Declare(
     googletest
-    URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+    URL https://github.com/google/googletest/archive/refs/tags/v1.18.0.tar.gz
 )
 
 FetchContent_MakeAvailable(googletest)
 enable_testing()
 
-add_library(storage_engine STATIC
-src/initfile.cpp)
-target_include_directories(storage_engine PUBLIC include/)
+add_library(ste_compile_link_options INTERFACE)
 
-target_compile_options(storage_engine PRIVATE 
+target_compile_options(ste_compile_link_options INTERFACE
 ${COMMON_COMPILE_OPTIONS}
 $<$<CONFIG:Debug,RelWithDebInfo>:-fno-omit-frame-pointer>
 ${SANITIZER_FLAGS}
 )
 
-target_link_options(storage_engine PRIVATE
+target_link_options(ste_compile_link_options INTERFACE
 ${COMMON_LINK_OPTIONS}
 ${SANITIZER_FLAGS}
 )
 
-add_executable(asan_test tests/asan_test.cpp)
-target_link_libraries(asan_test PRIVATE GTest::gtest_main storage_engine)
-add_test(NAME asan_test COMMAND asan_test)
+add_library(storage_engine STATIC
+src/initfile.cpp)
+target_include_directories(storage_engine PUBLIC include/)
+target_link_libraries(storage_engine PRIVATE ste_compile_link_options)
+
+add_executable(DiskManagerTests tests/DiskManagerTests.cpp)
+target_link_libraries(DiskManagerTests PRIVATE GTest::gtest_main ste_compile_link_options storage_engine)
+add_test(NAME DiskManagerTests COMMAND DiskManagerTests)
 
 

@@ -1,5 +1,3 @@
 #pragma once
 
-#include <vector>
-
-std::vector<int> test_init();
+int do_nothing();

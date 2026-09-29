@@ -1,1 +1,1 @@
-Модуль хранения как часть потенциальной базы данных.
+Storage engine for some database.

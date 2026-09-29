@@ -1,13 +1,6 @@
 #include "initfile.hpp"
 
-std::vector<int> test_init()
+int do_nothing()
 {
-    std::vector<int> v;
-
-    for (int i = 0; i < 5; ++i)
-    {
-        v.push_back(1);
-    }
-
-    return v;
+    return 1;
 }
