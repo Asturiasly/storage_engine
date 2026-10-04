@@ -1,0 +1,179 @@
+{
+    "version": 6,
+    "configurePresets": 
+    [
+        {
+            "name": "base_debug",
+            "hidden": true,
+            "displayName": "Base debug preset to be inherited",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {"CMAKE_BUILD_TYPE": "Debug"}
+        },
+        {
+            "name": "gcc_compiler",
+            "hidden": true,
+            "displayName": "GCC compiler preset to be inherited",
+            "cacheVariables": {"CMAKE_CXX_COMPILER": "g++"}
+        },
+        {
+            "name": "clang_compiler",
+            "hidden": true,
+            "displayName": "Clang compiler preset to be inherited",
+            "cacheVariables": {"CMAKE_CXX_COMPILER": "clang++"}
+        },
+        {
+            "name": "no_sans",
+            "hidden": true,
+            "displayName": "No sanitizers is used",
+            "cacheVariables": {"SANITIZER_TYPE": "off"}
+        },
+        {
+            "name": "ubsan_asan",
+            "hidden": true,
+            "displayName": "UBSan + ASan",
+            "cacheVariables": {"SANITIZER_TYPE": "ADDRESS_UB_SANITIZE"}
+        },
+        {
+            "name": "ubsan_tsan",
+            "hidden": true,
+            "displayName": "UBSan + TSan",
+            "cacheVariables": {"SANITIZER_TYPE": "UB_THREAD_SANITIZE"}
+        },
+        {
+            "name": "debug_no_sans_gcc",
+            "inherits": ["base_debug", "gcc_compiler", "no_sans"],
+            "displayName": "GCC Debug (no sanitizers)"
+        },
+        {
+            "name": "debug_ubsan_asan_gcc",
+            "inherits": ["base_debug", "gcc_compiler", "ubsan_asan"],
+            "displayName": "GCC Debug (ASan + UBSan)"
+        },
+        {
+            "name": "debug_ubsan_tsan_gcc",
+            "inherits": ["base_debug", "gcc_compiler", "ubsan_tsan"],
+            "displayName": "GCC Debug (TSan + UBSan)"
+        },
+        {
+            "name": "debug_no_sans_clang",
+            "inherits": ["base_debug", "clang_compiler", "no_sans"],
+            "displayName": "Clang Debug (no sanitizers)"
+        },
+        {
+            "name": "debug_ubsan_asan_clang",
+            "inherits": ["base_debug", "clang_compiler", "ubsan_asan"],
+            "displayName": "Clang Debug (ASan + UBSan)"
+        },
+        {
+            "name": "debug_ubsan_tsan_clang",
+            "inherits": ["base_debug", "clang_compiler", "ubsan_tsan"],
+            "displayName": "Clang Debug (TSan + UBSan)"
+        }
+    ],
+    "buildPresets": 
+    [
+        {"name": "debug_no_sans_gcc", "configurePreset": "debug_no_sans_gcc"},
+        {"name": "debug_ubsan_asan_gcc", "configurePreset": "debug_ubsan_asan_gcc"},
+        {"name": "debug_ubsan_tsan_gcc", "configurePreset": "debug_ubsan_tsan_gcc"},
+        {"name": "debug_no_sans_clang", "configurePreset": "debug_no_sans_clang"},
+        {"name": "debug_ubsan_asan_clang", "configurePreset": "debug_ubsan_asan_clang"},
+        {"name": "debug_ubsan_tsan_clang", "configurePreset": "debug_ubsan_tsan_clang"}
+    ],
+    "testPresets": 
+    [
+        {
+            "name": "base_test_configure",
+            "hidden": true,
+            "output": {"outputOnFailure": true},
+            "execution": {"stopOnFailure": false}
+        },
+        {
+            "name":"debug_no_sans_gcc",
+            "configurePreset": "debug_no_sans_gcc",
+            "inherits": "base_test_configure"
+        },
+        {
+            "name":"debug_ubsan_asan_gcc",
+            "configurePreset": "debug_ubsan_asan_gcc",
+            "inherits": "base_test_configure"
+        },
+        {
+            "name":"debug_ubsan_tsan_gcc",
+            "configurePreset": "debug_ubsan_tsan_gcc",
+            "inherits": "base_test_configure"
+        },
+        {
+            "name":"debug_no_sans_clang",
+            "configurePreset": "debug_no_sans_clang",
+            "inherits": "base_test_configure"
+        },
+        {
+            "name":"debug_ubsan_asan_clang",
+            "configurePreset": "debug_ubsan_asan_clang",
+            "inherits": "base_test_configure"
+        },
+        {
+            "name":"debug_ubsan_tsan_clang",
+            "configurePreset": "debug_ubsan_tsan_clang",
+            "inherits": "base_test_configure"
+        }
+    ],
+    "workflowPresets": 
+    [
+        {
+            "name": "debug_no_sans_gcc",
+            "steps": 
+            [
+                {"type": "configure", "name": "debug_no_sans_gcc"},
+                {"type": "build", "name": "debug_no_sans_gcc"},
+                {"type": "test", "name": "debug_no_sans_gcc"}
+            ] 
+        },
+        {
+            "name": "debug_ubsan_asan_gcc",
+            "steps": 
+            [
+                {"type": "configure", "name": "debug_ubsan_asan_gcc"},
+                {"type": "build", "name": "debug_ubsan_asan_gcc"},
+                {"type": "test", "name": "debug_ubsan_asan_gcc"}
+            ] 
+        },
+        {
+            "name": "debug_ubsan_tsan_gcc",
+            "steps": 
+            [
+                {"type": "configure", "name": "debug_ubsan_tsan_gcc"},
+                {"type": "build", "name": "debug_ubsan_tsan_gcc"},
+                {"type": "test", "name": "debug_ubsan_tsan_gcc"}
+            ] 
+        },
+        {
+            "name": "debug_no_sans_clang",
+            "steps": 
+            [
+                {"type": "configure", "name": "debug_no_sans_clang"},
+                {"type": "build", "name": "debug_no_sans_clang"},
+                {"type": "test", "name": "debug_no_sans_clang"}
+            ] 
+        },
+        {
+            "name": "debug_ubsan_asan_clang",
+            "steps": 
+            [
+                {"type": "configure", "name": "debug_ubsan_asan_clang"},
+                {"type": "build", "name": "debug_ubsan_asan_clang"},
+                {"type": "test", "name": "debug_ubsan_asan_clang"}
+            ] 
+        },
+        {
+            "name": "debug_ubsan_tsan_clang",
+            "steps": 
+            [
+                {"type": "configure", "name": "debug_ubsan_tsan_clang"},
+                {"type": "build", "name": "debug_ubsan_tsan_clang"},
+                {"type": "test", "name": "debug_ubsan_tsan_clang"}
+            ] 
+        }
+    ]
+}

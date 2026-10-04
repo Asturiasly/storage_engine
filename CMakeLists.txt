@@ -14,17 +14,17 @@ set(MIN_CLANG_COMPILER_VERSION "10.0.0")
 
 
 IF (NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    message(FATAL_ERROR ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} " is unsupported")
+    message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} is unsupported")
 ENDIF()
 
 IF (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${MIN_GCC_COMPILER_VERSION})
-    message(STATUS "Current version of " ${CMAKE_CXX_COMPILER_ID} "is: " ${CMAKE_CXX_COMPILER_VERSION})
-    message(FATAL_ERROR ${CMAKE_CXX_COMPILER_ID} " version is less " ${MIN_GCC_COMPILER_VERSION} " and is not acceptable")
+    message(STATUS "Current version of ${CMAKE_CXX_COMPILER_ID} is: ${CMAKE_CXX_COMPILER_VERSION}")
+    message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} version is less ${MIN_GCC_COMPILER_VERSION} and is not acceptable")
 ENDIF()
 
 IF (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${MIN_CLANG_COMPILER_VERSION})
-    message(STATUS "Current version of " ${CMAKE_CXX_COMPILER_ID} "is: " ${CMAKE_CXX_COMPILER_VERSION})
-    message(FATAL_ERROR ${CMAKE_CXX_COMPILER_ID} " version is less " ${MIN_CLANG_COMPILER_VERSION} " and is not acceptable")
+    message(STATUS "Current version of ${CMAKE_CXX_COMPILER_ID} is: ${CMAKE_CXX_COMPILER_VERSION}")
+    message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} version is less ${MIN_CLANG_COMPILER_VERSION} and is not acceptable")
 ENDIF()
 
 set(CMAKE_CXX_STANDARD 20)
@@ -42,7 +42,7 @@ ENDIF()
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
-set(SANITIZER_TYPE "off" CACHE STRING "Используются ли санитайзеры")
+set(SANITIZER_TYPE "off" CACHE STRING "Available sanitizers options: \n\tADDRESS_UB_SANITIZE\n\tUB_THREAD_SANITIZE\n")
 
 #Common flags for all types
 set(COMMON_COMPILE_OPTIONS 
