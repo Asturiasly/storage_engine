@@ -1,0 +1,22 @@
+name: Storage_engine_CI
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+
+jobs:
+  build:
+    name: debug_${{ matrix.sanitizers }}_${{ matrix.compilers }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizers: [no_sans, ubsan_asan, ubsan_tsan]
+        compilers: [gcc, clang]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: CMake workflow debug_${{ matrix.sanitizers }}_${{ matrix.compilers }}
+        run: cmake --workflow --preset debug_${{ matrix.sanitizers }}_${{ matrix.compilers }}
