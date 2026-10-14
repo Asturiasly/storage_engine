@@ -50,6 +50,8 @@ set(COMMON_COMPILE_OPTIONS
     -Wextra
     -Wpedantic
     -Werror
+    -Wconversion 
+    -Wsign-conversion
     -pedantic-errors)
 
 #Common linker flags
@@ -96,11 +98,25 @@ ${SANITIZER_FLAGS}
 
 add_library(storage_engine STATIC
 src/initfile.cpp)
-target_include_directories(storage_engine PUBLIC include/)
+target_include_directories(storage_engine PUBLIC 
+$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
+$<INSTALL_INTERFACE:include>)
+
 target_link_libraries(storage_engine PRIVATE ste_compile_link_options)
 
-add_executable(DiskManagerTests tests/DiskManagerTests.cpp)
-target_link_libraries(DiskManagerTests PRIVATE GTest::gtest_main ste_compile_link_options storage_engine)
-add_test(NAME DiskManagerTests COMMAND DiskManagerTests)
+function(add_se_test name)
+    add_executable(${name} ${ARGN})
+    target_link_libraries(${name} PRIVATE GTest::gtest_main ste_compile_link_options storage_engine)
+    add_test(NAME ${name} COMMAND ${name})
+endfunction()
+
+add_se_test(PageTests tests/PageTests.cpp)
+
+install(TARGETS storage_engine
+    EXPORT StorageEngineTargets           # Имя набора экспорта (пригодится позже)
+    ARCHIVE DESTINATION lib               # Для .a файлов (Linux/macOS)
+    RUNTIME DESTINATION bin               # Для .dll файлов (Windows)
+    INCLUDES DESTINATION include          # Добавит include/ в пути использования цели
+)
 
 

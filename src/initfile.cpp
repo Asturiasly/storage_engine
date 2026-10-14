@@ -1,6 +1,3 @@
-#include "initfile.hpp"
+#include <storage_engine/page.hpp>
 
-int do_nothing()
-{
-    return 1;
-}
+//no-op file
