@@ -11,7 +11,6 @@ namespace StorageEngine
     //Reading 1 block is less operation per keys in b-tree nodes and using less resources while small changes.
     inline constexpr std::size_t PageSize = 4096;
 
-
     class PageId
     {
         //project 2pw32 = ~4.29 bil of pages with std::uint32_t, max file = 16TB.

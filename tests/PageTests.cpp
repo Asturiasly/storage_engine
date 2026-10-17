@@ -3,7 +3,7 @@
 #include <limits>
 
 #include <gtest/gtest.h>
-#include <storage_engine/page.hpp>
+#include <storage_engine/Page.hpp>
 
 constexpr StorageEngine::PageId p_max(std::numeric_limits<StorageEngine::PageId::UnderlyingType>::max());
 constexpr StorageEngine::PageId p;
