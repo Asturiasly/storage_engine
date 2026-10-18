@@ -32,5 +32,5 @@ TEST(Pages, ComputeIdInRuntime)
     int x = 1;
     int y = 2;
     StorageEngine::PageId PIobj{static_cast<StorageEngine::PageId::UnderlyingType>(x + y)};
-    EXPECT_TRUE(PIobj.GetId() == 3);
+    EXPECT_EQ(PIobj.GetId(), 3) << "PageId = " << PIobj.GetId();
 }
