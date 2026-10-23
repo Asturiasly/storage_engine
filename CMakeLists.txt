@@ -97,7 +97,7 @@ ${SANITIZER_FLAGS}
 )
 
 add_library(storage_engine STATIC
-src/PageBuffer.cpp)
+src/FileDescriptor.cpp src/DiskManager.cpp)
 target_include_directories(storage_engine PUBLIC 
 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
 $<INSTALL_INTERFACE:include>)
@@ -111,13 +111,6 @@ function(add_se_test name)
 endfunction()
 
 add_se_test(PageTests tests/PageTests.cpp)
-add_se_test(PageBuffer tests/PageBufferTests.cpp)
-
-install(TARGETS storage_engine
-    EXPORT StorageEngineTargets           # Имя набора экспорта (пригодится позже)
-    ARCHIVE DESTINATION lib               # Для .a файлов (Linux/macOS)
-    RUNTIME DESTINATION bin               # Для .dll файлов (Windows)
-    INCLUDES DESTINATION include          # Добавит include/ в пути использования цели
-)
-
+add_se_test(PageBufferTests tests/PageBufferTests.cpp)
+add_se_test(DiskManagerTests tests/DiskManagerTests.cpp)
 
