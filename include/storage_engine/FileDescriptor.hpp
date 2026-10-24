@@ -13,10 +13,10 @@ namespace StorageEngine
             [[nodiscard]] bool IsValidDescriptor() const noexcept;
             [[nodiscard]] int GetFd() const noexcept;
             ~FileDescriptor();
+            static constexpr int InvalidDescriptor = -1;
 
         private:
             int fd_;
-            static constexpr int InvalidDescriptor = -1;
-            static void CloseFd(int fd) noexcept;
+            static void CloseFd_(int fd) noexcept;
     };
 } //StorageEngine

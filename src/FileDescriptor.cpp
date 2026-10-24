@@ -12,7 +12,7 @@ namespace StorageEngine
         if (this != &other)          
         {
             if (fd_ != InvalidDescriptor)           
-                CloseFd(fd_);       
+                CloseFd_(fd_);       
             fd_ = std::exchange(other.fd_, InvalidDescriptor);
         }
         return *this;
@@ -27,7 +27,7 @@ namespace StorageEngine
     {
         if (fd_ != InvalidDescriptor) 
         {   
-            CloseFd(fd_);
+            CloseFd_(fd_);
         }
     }
 
@@ -36,7 +36,7 @@ namespace StorageEngine
         return fd_ != InvalidDescriptor;
     }
 
-    void FileDescriptor::CloseFd(int fd) noexcept
+    void FileDescriptor::CloseFd_(int fd) noexcept
     {
         //Can't close anyway twice if close func returned error
         ::close(fd);

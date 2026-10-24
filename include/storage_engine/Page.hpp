@@ -18,7 +18,14 @@ namespace StorageEngine
         //Changing uint32->uint64 = losing all previous db files.
 
         public:
-            using UnderlyingType = std::uint32_t;
+        using UnderlyingType = std::uint32_t;
+        using PageCount = UnderlyingType;
+
+        private:
+        static constexpr UnderlyingType InvalidValue_ = std::numeric_limits<UnderlyingType>::max();
+
+        public:
+            static constexpr PageCount MaxPageCount = InvalidValue_;
 
             //Deleted all implicit conversions
             template <typename T>
@@ -31,7 +38,6 @@ namespace StorageEngine
             constexpr auto operator<=>(const PageId& /*other*/) const = default;
 
         private:
-            static constexpr UnderlyingType InvalidValue_ = std::numeric_limits<UnderlyingType>::max();
             UnderlyingType id_;   
     };
 } //StorageEngine
