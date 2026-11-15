@@ -1,6 +1,6 @@
 #include <bit>
-#include <cstddef>
 #include <limits>
+#include <optional>
 
 #include <gtest/gtest.h>
 #include <storage_engine/Page.hpp>
@@ -22,9 +22,9 @@ static_assert(p0 < p2, "PageId with lesser id must be less than other");
 static_assert(p2 > p0, "PageId with greater id must be greater than other");
 static_assert(p0 >= p1, "The same PageId objects must be equal with ge operator");
 static_assert(p0 <= p1, "The same PageId objects must be equal with le operator");
-static_assert(p.GetId() == std::numeric_limits<StorageEngine::PageId::UnderlyingType>::max(), "Invalid PageId must return std::uint32_t::max() id");
+static_assert(p.GetId() == std::nullopt, "Invalid PageId must return std::uint32_t::max() id");
 static_assert(p0.GetId() == 0, "PageId with constructed by 0 value must return 0 id");
-static_assert(p_max.GetId() == std::numeric_limits<StorageEngine::PageId::UnderlyingType>::max());
+static_assert(p_max.GetId() == std::nullopt);
 static_assert(!p_max.IsValid());
 
 TEST(Pages, ComputeIdInRuntime)
@@ -32,5 +32,5 @@ TEST(Pages, ComputeIdInRuntime)
     int x = 1;
     int y = 2;
     StorageEngine::PageId PIobj{static_cast<StorageEngine::PageId::UnderlyingType>(x + y)};
-    EXPECT_EQ(PIobj.GetId(), 3) << "PageId = " << PIobj.GetId();
+    EXPECT_EQ(PIobj.GetId().value(), 3) << "PageId = " << PIobj.GetId().value();
 }

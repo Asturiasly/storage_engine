@@ -1,9 +1,11 @@
 #pragma once
 
+#include <compare>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
-#include <compare>
+#include <optional>
+#include <string>
 
 namespace StorageEngine 
 {
@@ -25,7 +27,7 @@ namespace StorageEngine
         static constexpr UnderlyingType InvalidValue_ = std::numeric_limits<UnderlyingType>::max();
 
         public:
-            static constexpr PageCount MaxPageCount = InvalidValue_;
+            static constexpr UnderlyingType MaxPageCount = InvalidValue_;
 
             //Deleted all implicit conversions
             template <typename T>
@@ -34,7 +36,15 @@ namespace StorageEngine
             constexpr PageId() noexcept : id_(InvalidValue_) {}
 
             [[nodiscard]] constexpr bool IsValid() const noexcept { return id_ != InvalidValue_; }
-            [[nodiscard]] constexpr UnderlyingType GetId() const noexcept { return id_; }
+            //optional to avoid useless invalid value
+            [[nodiscard]] constexpr std::optional<UnderlyingType> GetId() const noexcept 
+            { 
+                return IsValid() ? std::optional<UnderlyingType>{id_} : std::nullopt;
+            }
+            [[nodiscard]] std::string ToString() const
+            {
+                return IsValid() ? std::to_string(id_) : std::string("Invalid"); 
+            }
             constexpr auto operator<=>(const PageId& /*other*/) const = default;
 
         private:
