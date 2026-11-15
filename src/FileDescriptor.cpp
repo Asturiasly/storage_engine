@@ -39,6 +39,7 @@ namespace StorageEngine
     void FileDescriptor::CloseFd_(int fd) noexcept
     {
         //Can't close anyway twice if close func returned error
+        //Also no guarantees about data on disk. Later will check fdatasynch before closing.
         ::close(fd);
     }
 } //StorageEngine
