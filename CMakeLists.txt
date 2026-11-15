@@ -113,4 +113,5 @@ endfunction()
 add_se_test(PageTests tests/PageTests.cpp)
 add_se_test(PageBufferTests tests/PageBufferTests.cpp)
 add_se_test(DiskManagerTests tests/DiskManagerTests.cpp)
+add_se_test(ErrorsTests tests/ErrorsTests.cpp)
 

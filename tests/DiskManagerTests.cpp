@@ -1,5 +1,6 @@
 #include <storage_engine/DiskManager.hpp>
 #include <storage_engine/Page.hpp>
+#include <storage_engine/Errors/ErrorsHeader.hpp>
 #include <gtest/gtest.h>
 #include <type_traits>
 #include <filesystem>
@@ -46,20 +47,20 @@ class DiskManagerFixture : public ::testing::Test
 };
 
 template <typename Action>
-void ExpectSystemError(Action&& action, std::errc expected_code)
+void ExpectIOError(Action&& action, std::errc expected_code)
 {
     try
     {
         action();
-        FAIL() << "Expected std::system_error";
+        FAIL() << "Expected IOError";
     }
-    catch (const std::system_error& e)
+    catch (const StorageEngine::IOError& e)
     {
-        EXPECT_EQ(e.code(), expected_code);
+        EXPECT_EQ(static_cast<std::errc>(e.GetErrorCode().value()), expected_code);
     }
     catch (...)
     {
-        FAIL() << "Expected std::system_error, got something else";
+        FAIL() << "Expected IOError, got something else";
     }
 }
 
@@ -76,7 +77,7 @@ TEST_F(DiskManagerFixture, CreateNewFileTwice)
         StorageEngine::DiskManager DM0(GetPath(), StorageEngine::DiskManagerMode::CreateNew);
     }
 
-    ExpectSystemError(
+    ExpectIOError(
         [this] 
         {
             StorageEngine::DiskManager DM1(GetPath(), StorageEngine::DiskManagerMode::CreateNew);
@@ -86,7 +87,7 @@ TEST_F(DiskManagerFixture, CreateNewFileTwice)
 
 TEST_F(DiskManagerFixture, OpenUnexistingFile)
 {
-    ExpectSystemError(
+    ExpectIOError(
         [this] 
         {
             StorageEngine::DiskManager DM(GetPath(), StorageEngine::DiskManagerMode::OpenExisting);
@@ -97,7 +98,7 @@ TEST_F(DiskManagerFixture, OpenUnexistingFile)
 
 TEST_F(DiskManagerFixture, NewFileInUnexistingDir)
 {
-    ExpectSystemError(
+    ExpectIOError(
         [] 
         {
             StorageEngine::DiskManager DM(GetTmpDir().string() + "/unexisting_dir/some_file", StorageEngine::DiskManagerMode::CreateNew);
@@ -157,7 +158,21 @@ TEST_F(DiskManagerFixture, NonMultipleOfPageSizeFile)
         StorageEngine::DiskManager DMToCreate(GetPath(), StorageEngine::DiskManagerMode::CreateNew);
     }
     std::filesystem::resize_file(GetPath(), 3071);
-    EXPECT_THROW(StorageEngine::DiskManager DM(GetPath(), StorageEngine::DiskManagerMode::OpenExisting), std::runtime_error);
+    EXPECT_THROW(
+        {
+            try
+            {
+                StorageEngine::DiskManager DM(GetPath(), StorageEngine::DiskManagerMode::OpenExisting);
+            }
+            catch(const StorageEngine::CorruptedDataError& ex)
+            {
+                EXPECT_EQ(ex.GetPath(), GetPath());
+                EXPECT_EQ(ex.GetOperation(), StorageEngine::Operation::Open);
+                EXPECT_TRUE(!std::string(ex.what()).empty());
+                throw;
+            }
+        }, StorageEngine::CorruptedDataError
+    );
 }
 
 TEST_F(DiskManagerFixture, FileGrants)
