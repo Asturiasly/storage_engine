@@ -6,10 +6,13 @@ namespace StorageEngine
 {
     enum class Operation
     {
-        Open
+        Open,
+        ReadPage,
+        WritePage,
+        AllocatePage
     };
 
-    static std::string_view OperationToString(Operation op) noexcept
+    inline std::string_view OperationToString(Operation op) noexcept
     {
         switch (op)
         {
@@ -17,8 +20,19 @@ namespace StorageEngine
             {
                 return "Open";
             }
+            case Operation::ReadPage:
+            {
+                return "ReadPage";
+            }
+            case Operation::WritePage:
+            {
+                return "WritePage";
+            }
+            case Operation::AllocatePage:
+            {
+                return "AllocatePage";
+            }
         }
-
         __builtin_unreachable();
     }
 }//StorageEngine

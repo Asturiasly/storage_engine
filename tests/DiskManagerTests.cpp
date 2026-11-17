@@ -68,7 +68,7 @@ TEST_F(DiskManagerFixture, CreateNewFile)
 {
     StorageEngine::DiskManager DM(GetPath(), StorageEngine::DiskManagerMode::CreateNew);
     EXPECT_TRUE(std::filesystem::is_regular_file(GetPath()));
-    EXPECT_EQ(DM.GetPageCount(), 0);
+    EXPECT_EQ(DM.GetCurrentPageCount(), 0);
 }
 
 TEST_F(DiskManagerFixture, CreateNewFileTwice)
@@ -114,7 +114,7 @@ TEST_F(DiskManagerFixture, OpenExistingEmptyFile)
     }
 
     StorageEngine::DiskManager DM1(GetPath(), StorageEngine::DiskManagerMode::OpenExisting);
-    EXPECT_EQ(DM1.GetPageCount(), 0);
+    EXPECT_EQ(DM1.GetCurrentPageCount(), 0);
 }
 
 TEST_F(DiskManagerFixture, OpenExistingNonEmptyFile)
@@ -127,29 +127,63 @@ TEST_F(DiskManagerFixture, OpenExistingNonEmptyFile)
 
     {
         StorageEngine::DiskManager DM(GetPath(), StorageEngine::DiskManagerMode::OpenExisting);
-        EXPECT_EQ(DM.GetPageCount(), 1);
+        EXPECT_EQ(DM.GetCurrentPageCount(), 1);
     }
 
     std::filesystem::resize_file(GetPath(), StorageEngine::PageSize * 2);
 
     {
         StorageEngine::DiskManager DM(GetPath(), StorageEngine::DiskManagerMode::OpenExisting);
-        EXPECT_EQ(DM.GetPageCount(), 2);
+        EXPECT_EQ(DM.GetCurrentPageCount(), 2);
     }
 
     std::filesystem::resize_file(GetPath(), StorageEngine::PageSize * 50);
 
     {
         StorageEngine::DiskManager DM(GetPath(), StorageEngine::DiskManagerMode::OpenExisting);
-        EXPECT_EQ(DM.GetPageCount(), 50);
+        EXPECT_EQ(DM.GetCurrentPageCount(), 50);
     }
 
     std::filesystem::resize_file(GetPath(), StorageEngine::PageSize * 150);
 
     {
         StorageEngine::DiskManager DM(GetPath(), StorageEngine::DiskManagerMode::OpenExisting);
-        EXPECT_EQ(DM.GetPageCount(), 150);
+        EXPECT_EQ(DM.GetCurrentPageCount(), 150);
     }
+}
+
+TEST_F(DiskManagerFixture, PageBaseAllocation)
+{
+    StorageEngine::DiskManager DMToAllocate(GetPath(), StorageEngine::DiskManagerMode::CreateNew);
+    EXPECT_EQ(DMToAllocate.GetCurrentPageCount(), 0);
+    EXPECT_EQ(std::filesystem::file_size(GetPath()), 0);
+    StorageEngine::PageId page = DMToAllocate.AllocatePage();
+    EXPECT_EQ(DMToAllocate.GetCurrentPageCount(), 1);
+    EXPECT_EQ(std::filesystem::file_size(GetPath()), StorageEngine::PageSize);
+    EXPECT_EQ(page.GetId(), 0);
+}
+
+TEST_F(DiskManagerFixture, PageAllocationReopen)
+{
+    {
+        StorageEngine::DiskManager DMToAllocate(GetPath(), StorageEngine::DiskManagerMode::CreateNew);
+        EXPECT_EQ(DMToAllocate.GetCurrentPageCount(), 0);
+        for (int i = 0; i < 5; ++i)
+        {
+            StorageEngine::PageId page1 = DMToAllocate.AllocatePage();
+            EXPECT_EQ(std::filesystem::file_size(GetPath()), StorageEngine::PageSize * (i + 1));
+            EXPECT_EQ(DMToAllocate.GetCurrentPageCount(), i + 1);
+            EXPECT_EQ(page1.GetId(), i);
+        }
+    }
+
+    StorageEngine::DiskManager DMReOpen(GetPath(), StorageEngine::DiskManagerMode::OpenExisting);
+    EXPECT_EQ(DMReOpen.GetCurrentPageCount(), 5);
+    EXPECT_EQ(std::filesystem::file_size(GetPath()), StorageEngine::PageSize * 5);
+    StorageEngine::PageId page2 = DMReOpen.AllocatePage();
+    EXPECT_EQ(std::filesystem::file_size(GetPath()), StorageEngine::PageSize * 6);
+    EXPECT_EQ(DMReOpen.GetCurrentPageCount(), 6);
+    EXPECT_EQ(page2.GetId(), 5);
 }
 
 TEST_F(DiskManagerFixture, NonMultipleOfPageSizeFile)
