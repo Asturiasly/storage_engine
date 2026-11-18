@@ -13,6 +13,8 @@ namespace StorageEngine
             enum class Reason
             {
                 SizeNotMultipleOfPage,
+                PageOutOfRange,
+                UnexpectedShortRead
             };
 
             CorruptedDataError(ErrorData err_data, Reason reason) :
@@ -35,6 +37,16 @@ namespace StorageEngine
                     case Reason::SizeNotMultipleOfPage:
                     {
                         err_data.err_txt_ = "Expected multiple of size of page " + std::to_string(StorageEngine::PageSize);
+                        break;
+                    }
+                    case Reason::PageOutOfRange:
+                    {
+                        err_data.err_txt_ = "Trying to proceed operation out of pages range";
+                        break;
+                    }
+                    case Reason::UnexpectedShortRead:
+                    {
+                        err_data.err_txt_ = "Trying to read returns less than expected";
                         break;
                     }
                 }

@@ -7,11 +7,12 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#include <unistd.h>
 
+#include <cassert>
 #include <stdexcept>
 #include <string>
 #include <system_error>
-#include <limits>
 #include <utility>
 
 namespace StorageEngine
@@ -82,7 +83,7 @@ namespace StorageEngine
     }
 
     //Binary condition. No sense to use EINTR cycles.
-    //ENOSPC is obvious risk in future writing in db file, but we do not guarantee that storage have enough space
+    //ENOSPC is obvious risk in future writing in file, but we do not guarantee that storage have enough space
     //for this data after page allocation.
     PageId DiskManager::AllocatePage()
     {
@@ -100,6 +101,87 @@ namespace StorageEngine
 
         PageId new_page(static_cast<PageId::UnderlyingType>(current_page_count_++));
         return new_page;
+    }
+
+    void DiskManager::WritePage(PageId page, PageBuffer::ConstPageView bytes)
+    {
+        //Expected valid page - got invalid
+        assert(page.GetId().has_value());
+
+        size_t written_bytes = 0;
+        PageId::UnderlyingType page_id = page.GetId().value();
+
+        if (page_id >= current_page_count_)
+        {
+            throw CorruptedDataError(ErrorData(Operation::WritePage, path_),
+            CorruptedDataError::Reason::PageOutOfRange);
+        }
+
+        while(written_bytes < PageSize)
+        {
+            ::ssize_t ret = pwrite(fd_.GetFd(), bytes.data() + written_bytes, 
+            PageSize - written_bytes, 
+            static_cast<::off_t>(page_id * PageSize + written_bytes));
+
+            if (ret == -1)
+            {
+                int pwrite_errno = errno;
+                if (pwrite_errno == EINTR)
+                    continue;
+                else
+                    throw IOError(ErrorData(Operation::WritePage, path_), 
+                    std::error_code(pwrite_errno, std::system_category()));
+            }
+
+            if (ret == 0)
+            {
+                //Kernel gives no progress or error for write operation
+                throw IOError(ErrorData(Operation::WritePage, path_), 
+                std::error_code(EIO, std::system_category()));
+            }
+
+            written_bytes += static_cast<size_t>(ret);
+        }
+    }
+
+    void DiskManager::ReadPage(PageId page, PageBuffer::PageView bytes)
+    {
+        assert(page.GetId().has_value());
+
+        size_t read_bytes = 0;
+        PageId::UnderlyingType page_id = page.GetId().value();
+
+        if (page_id >= current_page_count_)
+        {
+            throw CorruptedDataError(ErrorData(Operation::ReadPage, path_),
+            CorruptedDataError::Reason::PageOutOfRange);
+        }
+
+        while(read_bytes < PageSize)
+        {
+            ::ssize_t ret = pread(fd_.GetFd(), bytes.data() + read_bytes, 
+            PageSize - read_bytes, 
+            static_cast<::off_t>(page_id * PageSize + read_bytes));
+
+            if (ret == -1)
+            {
+                int pread_errno = errno;
+                if (pread_errno == EINTR)
+                    continue;
+                else
+                    throw IOError(ErrorData(Operation::ReadPage, path_), 
+                    std::error_code(pread_errno, std::system_category()));
+            }
+
+            if (ret == 0)
+            {
+                //Read nothing.
+                throw CorruptedDataError(ErrorData(Operation::ReadPage, path_), 
+                CorruptedDataError::Reason::UnexpectedShortRead);
+            }
+
+            read_bytes += static_cast<size_t>(ret);
+        }
     }
 
     PageId::PageCount DiskManager::GetCurrentPageCount() const noexcept

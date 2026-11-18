@@ -1,8 +1,8 @@
 #pragma once
 
 #include <storage_engine/FileDescriptor.hpp>
-#include <storage_engine/Common/Operations.hpp>
 #include <storage_engine/Page.hpp>
+#include <storage_engine/PageBuffer.hpp>
 
 #include <filesystem>
 
@@ -25,8 +25,8 @@ namespace StorageEngine
             [[nodiscard]] const std::filesystem::path& GetPath() const noexcept;
             [[nodiscard]] PageId::PageCount GetCurrentPageCount() const noexcept;
 
-            //void ReadPage(PageId)
-            //void WritePage(PageId)
+            void ReadPage(PageId, PageBuffer::PageView);
+            void WritePage(PageId, PageBuffer::ConstPageView);
             [[nodiscard]] PageId AllocatePage();
 
         private:
