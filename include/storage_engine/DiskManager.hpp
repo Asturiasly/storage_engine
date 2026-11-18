@@ -27,6 +27,7 @@ namespace StorageEngine
 
             void ReadPage(PageId, PageBuffer::PageView);
             void WritePage(PageId, PageBuffer::ConstPageView);
+            void Sync();
             [[nodiscard]] PageId AllocatePage();
 
         private:

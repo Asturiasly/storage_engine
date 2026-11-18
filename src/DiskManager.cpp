@@ -168,9 +168,9 @@ namespace StorageEngine
                 int pread_errno = errno;
                 if (pread_errno == EINTR)
                     continue;
-                else
-                    throw IOError(ErrorData(Operation::ReadPage, path_), 
-                    std::error_code(pread_errno, std::system_category()));
+
+                throw IOError(ErrorData(Operation::ReadPage, path_), 
+                std::error_code(pread_errno, std::system_category()));
             }
 
             if (ret == 0)
@@ -181,6 +181,30 @@ namespace StorageEngine
             }
 
             read_bytes += static_cast<size_t>(ret);
+        }
+    }
+
+    //Buffer pool will call it later
+    //TODO Sync directory. Limitation now
+    void DiskManager::Sync()
+    {
+        while (true)
+        {
+            //full metadata writing
+            //No need in faster fdatasync.
+            int ret = fsync(fd_.GetFd());
+
+            if (ret == -1)
+            {
+                int fsync_errno = errno;
+                if (fsync_errno == EINTR)
+                    continue;
+
+                throw IOError(ErrorData(Operation::SyncPages, path_), 
+                std::error_code(fsync_errno, std::system_category()));
+            }
+
+            break;
         }
     }
 

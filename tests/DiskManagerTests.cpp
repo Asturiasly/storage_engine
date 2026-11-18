@@ -266,6 +266,7 @@ TEST_F(DiskManagerFixture, DataAfterReopen)
         EXPECT_EQ(p_buf_write.View().size(), StorageEngine::PageSize);
 
         StorageEngine::PageId page1 = DM.AllocatePage();
+        EXPECT_EQ(std::filesystem::file_size(GetPath()), StorageEngine::PageSize);
         DM.WritePage(page1, p_buf_write.View());
         EXPECT_EQ(std::filesystem::file_size(GetPath()), StorageEngine::PageSize);
     }
@@ -349,6 +350,41 @@ TEST_F(DiskManagerFixture, GotInvalidPageForWrite)
     StorageEngine::PageId page{static_cast<StorageEngine::PageId::UnderlyingType>(StorageEngine::PageId::MaxPageCount)};
     StorageEngine::PageBuffer p_buf_write;
     EXPECT_DEBUG_DEATH(DM.WritePage(page, p_buf_write.View()), "");
+}
+
+TEST_F(DiskManagerFixture, SyncPages)
+{
+    {
+        StorageEngine::DiskManager DM(GetPath(), StorageEngine::DiskManagerMode::CreateNew);
+        EXPECT_EQ(DM.GetCurrentPageCount(), 0);
+
+        StorageEngine::PageBuffer p_buf_write;
+
+        for (size_t i = 0; i < StorageEngine::PageSize; ++i)
+        {
+            p_buf_write.View().data()[i] = static_cast<std::byte>(i + 1);
+        }
+
+        EXPECT_EQ(p_buf_write.View().size(), StorageEngine::PageSize);
+
+        StorageEngine::PageId page1 = DM.AllocatePage();
+        EXPECT_EQ(std::filesystem::file_size(GetPath()), StorageEngine::PageSize);
+        DM.WritePage(page1, p_buf_write.View());
+        EXPECT_EQ(std::filesystem::file_size(GetPath()), StorageEngine::PageSize);
+        DM.Sync();
+        //Two sincs is okay
+        DM.Sync();
+    }
+
+    StorageEngine::DiskManager DM(GetPath(), StorageEngine::DiskManagerMode::OpenExisting);
+    StorageEngine::PageBuffer p_buf_read;
+    StorageEngine::PageId page{static_cast<StorageEngine::PageId::UnderlyingType>(0)};
+    DM.ReadPage(page, p_buf_read.View());
+
+    for (size_t i = 0; i < StorageEngine::PageSize; ++i)
+    {
+        EXPECT_EQ(p_buf_read.View().data()[i], static_cast<std::byte>(i + 1));
+    }
 }
 
 TEST_F(DiskManagerFixture, NonMultipleOfPageSizeFile)

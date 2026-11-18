@@ -7,6 +7,7 @@ namespace StorageEngine
     enum class Operation
     {
         Open,
+        SyncPages,
         ReadPage,
         WritePage,
         AllocatePage
@@ -19,6 +20,10 @@ namespace StorageEngine
             case Operation::Open:
             {
                 return "Open";
+            }
+            case Operation::SyncPages:
+            {
+                return "SyncPages";
             }
             case Operation::ReadPage:
             {
